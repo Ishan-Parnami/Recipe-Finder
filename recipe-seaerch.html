@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Recipe Finder</title>
+    <link rel="stylesheet" type="text/css" href="res.css">
+
+<body>
+    <h1>Recipe Finder</h1>
+    <div class="search-container">
+        <input type="text" id="ingredient-input" placeholder="Enter an ingredient">
+        <button id="search-button">Search</button>
+    </div>
+
+    <div class="recipes">
+    </div>
+
+    <div class="favorites">
+        <h2>Favorites</h2>
+        <ul id="favorites-list">
+        </ul>
+    </div>
+    <div class="footer">
+        <p>&copy; 2023 Your Company Name. All rights reserved. <span>Made by Ishan Parnami</span></p>
+    </div>
+    
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#search-button").click(async function () {
+                let ingredient = $("#ingredient-input").val();
+                if (ingredient.trim() !== "") {
+                    ingredient = ingredient.split(' ').join('+');
+
+                    const apiUrl = `https://www.themealdb.com/api/json/v1/1/search.php?s=${ingredient}`;
+
+                    try {
+                        const response = await fetch(apiUrl);
+                        const data = await response.json();
+
+                        if (data.meals) {
+                            const recipeData = [];
+
+                            data.meals.forEach((meal) => {
+                                recipeData.push({
+                                    name: meal.strMeal,
+                                    image: meal.strMealThumb,
+                                    description: meal.strInstructions,
+                                });
+                            });
+
+                            displayRecipes(recipeData);
+                        } else {
+                            console.log('No recipes found for this ingredient.');
+                        }
+                    } catch (error) {
+                        console.error('An error occurred while fetching data:', error);
+                    }
+                }
+            });
+        });
+        function displayRecipes(recipes) {
+            const recipesContainer = $(".recipes");
+            recipesContainer.empty();
+
+            recipes.forEach(function (recipe, index) {
+                const recipeDiv = $("<div>").addClass("recipe");
+                const image = $("<img>").attr("src", recipe.image);
+                const name = $("<h3>").text(recipe.name);
+                const description = $("<p>").text(recipe.description);
+                const addFavoriteButton = $("<button>").text("Add to Favorites").click(function () {
+                    addToFavorites(recipe);
+                });
+
+                recipeDiv.append(image, name, description, addFavoriteButton);
+                recipesContainer.append(recipeDiv);
+            });
+        }
+
+        function addToFavorites(recipe) {
+            const favoritesList = $("#favorites-list");
+            const favoriteRecipe = $("<li>").text(recipe.name);
+
+            favoritesList.append(favoriteRecipe);
+        }
+
+
+        $(".recipe").click(function () {
+            const recipe = $(this);
+            const name = recipe.find("h3").text();
+            const image = recipe.find("img").attr("src");
+            const description = recipe.find("p").text();
+
+            alert(`Recipe: ${name}\nDescription: ${description}`);
+        });
+
+    </script>
+</body>
+
+</html>
